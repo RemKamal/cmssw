@@ -248,7 +248,7 @@ class GeneratorAnalyzer( Analyzer ):
 
         #event.vh_genZbosonsToLL = [ p for p in event.genParticles if abs(p.pdgId()) in [23] and abs(p.daughter(0).pdgId())!= abs(p.pdgId()) ]
         #event.vh_genWbosonsToLL = [ p for p in event.genParticles if abs(p.pdgId()) in [24] and abs(p.daughter(0).pdgId())!= abs(p.pdgId()) ]
-
+                
         event.vh_genvbosons = [ p for p in event.genParticles if abs(p.pdgId()) in [23,24] and p.numberOfDaughters()>0 and abs(p.daughter(0).pdgId()) != abs(p.pdgId()) and p.mass() > 30 ]
         event.vh_genvbosonsRecovered=[]
 
@@ -275,14 +275,37 @@ class GeneratorAnalyzer( Analyzer ):
         higgsBosons = [ p for p in event.genParticles if (p.pdgId() == 25) and p.numberOfDaughters() > 0 and abs(p.daughter(0).pdgId()) != 25 ]
         higgsBosonsFirst = [ p for p in event.genParticles if (p.pdgId() == 25) and p.numberOfMothers() > 0 and abs(p.mother(0).pdgId()) != 25 ]
         higgsMothers = [x.mother(0) for x in higgsBosonsFirst]
-        #print higgsMothers
+        #print higgsMothers                                                                                                                          
         event.vh_genHiggsSisters = [p for p in event.genParticles if p.mother(0) in higgsMothers  and p.pdgId() != 25 ]
 
         #print "higgsBosons: ", len(higgsBosons)
         #print "higgsBosonsFirst: ", len(higgsBosonsFirst)
-        #print "higgsMothers: ", len(higgsMothers)
-        
+        #print "higgsMothers: ", len(higgsMothers)                                                                                                   
 
+        
+        ###
+        ### HHtobbZZ related
+        ###
+        higgsBosonsTobb = [ p for p in event.genParticles if (p.pdgId() == 25) and p.numberOfDaughters() > 0 and abs(p.daughter(0).pdgId()) != 25 and abs(p.daughter(0).pdgId() ) == 5]
+        higgsBosonsToZZ = [ p for p in event.genParticles if (p.pdgId() == 25) and p.numberOfDaughters() > 0 and abs(p.daughter(0).pdgId()) != 25 and p.daughter(0).pdgId() == 23]
+
+        event.gen1stZbosonFromHtoZZ = []
+        event.gen2ndZbosonFromHtoZZ = []
+        event.sorted_HtoZZdaus_leptons = [] #if only one Z boson is explicitly present in the HtoZZ decay, then store leptons from the decay of the 2nd Z boson in this Python list
+
+
+        if len(higgsBosonsToZZ) > 0 and higgsBosonsToZZ[0].pdgId() == 23:
+            event.gen1stZbosonFromHtoZZ.append(higgsBosonsToZZ[0])
+            if len(higgsBosonsToZZ) > 1:
+                if higgsBosonsToZZ[1].pdgId() == 23:
+                    event.gen2ndZbosonFromHtoZZ.append(higgsBosonsToZZ[1])
+                else:
+                    temp_Hdau = [d for d in higgsBosonsToZZ[1:]] # all daughters of HtoZZ, when 1st one is Z, and others are non-Z
+                    sorted_HtoZZdaus_leptons = sorted (temp_Hdau, reverse = True, key = lambda x: x.p4().Pt() )  # sort in descending order in terms of Pt
+                    event.gen2ndZbosonFromHtoZZ.append (sorted_HtoZZdaus_leptons[0].p4() + sorted_HtoZZdaus_leptons[1].p4() ) #build 2nd Z boson as a pair of 4vectors of the highest Pt 
+    
+
+              
         if len(higgsBosons) == 0:
             event.genHiggsDecayMode = 0
 

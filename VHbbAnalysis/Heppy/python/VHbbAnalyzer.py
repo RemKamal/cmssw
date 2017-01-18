@@ -338,6 +338,7 @@ class VHbbAnalyzer( Analyzer ):
 				if abs(event.vh_genvbosons[0].daughter(0).pdgId()) == 15:
  					#ZtoTauTau
 					event.VtypeSim = 5
+                                        #ZtoMET
 				if abs(event.vh_genvbosons[0].daughter(0).pdgId()) in [12,14,16]:
 					event.VtypeSim = 4
 			#WtoLNu events	
